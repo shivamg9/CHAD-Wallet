@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { Connection, PublicKey } from '@solana/web3.js'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -19,11 +18,6 @@ export async function GET(req: Request) {
     if (!res.ok) throw new Error('BirdEye failed')
     const data = await res.json()
     const t = data.data
-    const connection = new Connection('https://api.mainnet-beta.solana.com')
-    const pubkey = new PublicKey(mint)
-    const supply = await connection.getSupply(pubkey)
-    const totalSupply = supply.value.total / Math.pow(10, t.decimals || 9)
-    const marketCap = (t.price || 0) * totalSupply
 
     return NextResponse.json({
       token: {
@@ -33,7 +27,7 @@ export async function GET(req: Request) {
         image: t.logoURI || '',
         price: t.price || 0,
         priceChange24h: t.v24hChangePercent || 0,
-        marketCap,
+        marketCap: t.mc || (t.price ? t.price * 1e9 : 0),
         volume24h: t.v24hUSD || 0,
         holders: 0,
         createdAt: new Date().toISOString(),

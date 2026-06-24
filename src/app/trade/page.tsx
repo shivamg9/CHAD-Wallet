@@ -1,5 +1,7 @@
 'use client'
+
 import * as React from 'react'
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -26,7 +28,7 @@ interface Trade {
   timestamp: number
 }
 
-export default function TradePage() {
+function TradePageInner() {
   const searchParams = useSearchParams()
   const [token, setToken] = useState<TokenInfo | null>(null)
   const [trades, setTrades] = useState<Trade[]>([])
@@ -294,12 +296,22 @@ function ChartPanel({ mint }: { mint: string }) {
         .catch(() => {})
 
       const ro = new ResizeObserver(() => {
-        if (chartRef.current) chart.applyOptions({ width: chartRef.current.clientWidth })
+        if (chartRef.current) chart.applyOptions({ width: chartRef.current!.clientWidth })
       })
-      ro.observe(chartRef.current)
+      ro.observe(chartRef.current!)
       return () => { ro.disconnect(); chart.remove() }
     })
   }, [mint])
 
   return <div ref={chartRef} className="w-full" />
 }
+
+function TradePageSuspense() {
+  return (
+    <Suspense fallback={<div className="pt-24 min-h-screen flex items-center justify-center"><div className="animate-pulse text-chad-accent">Loading...</div></div>}>
+      <TradePageInner />
+    </Suspense>
+  )
+}
+
+export default TradePageSuspense
